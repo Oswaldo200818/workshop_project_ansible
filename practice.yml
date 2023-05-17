@@ -1,7 +1,7 @@
 ---
 - name: Escalamiento
   hosts: windows
-
+  gather_facts: false
 
   tasks:
   - name: Escalado de privilegios
