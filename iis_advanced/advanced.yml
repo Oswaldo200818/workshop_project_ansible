@@ -1,0 +1,6 @@
+---
+- hosts: windows
+  name: Ejercicio de test nuevo
+
+  roles:
+    - iis_ad

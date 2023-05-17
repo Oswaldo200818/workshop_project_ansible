@@ -1,0 +1,114 @@
+---
+- name: Escalamiento
+  hosts: windows
+
+
+  tasks:
+  - name: Escalado de privilegios
+    become: yes
+    become_method: runas
+    become_user: Administrador
+    debug:
+      msg: "Escalamiento"
+
+  - name: Obtner hostname
+    win_command: hostname
+    register: result_hostname
+
+  - name: Imprimir hostname
+    debug:
+     msg: "El hostname es {{ result_hostname.stdout }}"
+
+  - name: Obtener la versión de windows
+    win_shell: |
+     (Get-WmiObject -Class Win32_OperatingSystem).Version
+    register: resultado_version_windows
+
+  - name: Imprimir el resultado
+    debug:
+     var: resultado_version_windows.stdout
+
+  # - name: Asegurar servicios Firewall y W3Svc
+  #   win_service:
+  #    name: "{{ item }}"
+  #    state: started
+  #    start_mode: auto
+  #   loop:
+  #    - MpsSvc
+  #    - W3Svc
+
+  - name: Habilitar servicio W3Svc en el Firewall
+    win_firewall_rule:
+     name: Habilitar servicio W3Svc
+     localport: "80"
+     action: allow
+     direction: in
+     protocol: tcp
+
+  - name: Crear directorio /tmp/reto1
+    win_file:
+     path: "\\tmp\\reto1"
+     state: directory
+     mode: "0755"
+
+  - name: Crear archivo reto1_content
+    win_copy:
+     content: Contenido del archivo reto1_content
+     dest: "\\tmp\\reto1\\reto1_content"
+
+  - name: Obtener versión de Windows
+    win_shell: |
+     $version = (Get-WmiObject -Class Win32_OperatingSystem).Version
+     $version | Out-File -FilePath "/tmp/reto1/reto1_content" -Append
+    
+  # - name: Actualizar paquetes
+  #   yum:
+  #    name: "*"
+  #    state: latest
+
+  - name: Reiniciar servidor
+    win_reboot:
+     reboot_timeout: 300
+    become: true
+    become_user: Administrador
+
+  # - name: Cambiar hostname
+  #   win_shell: |
+  #    $newHostname = "practice-ansible"
+  #    Rename-Computer -NewName $newHostname -Force -Restart
+  #   become: true
+  #   become_user: Administrador
+
+  # - name: Tomar backup del archivo reto1_content
+  #   backup:
+  #    src: /tmp/reto1/reto1_content
+  #    dest: /tmp/reto1/reto1_content.bak
+  #    suffix: .{{ ansible_date_time.epoch }}
+
+  - name: Agregar texto a archivo
+    win_lineinfile:
+     path: 'C:\tmp\reto1\reto1_content'
+     line: 'ESTA ES UNA PRUEBA'
+     create: yes
+
+  - name: Leer contenido del archivo reto1_content
+    slurp:
+     path: /tmp/reto1/reto1_content
+    register: file_content
+
+  # - name: Cambiar primera línea del archivo
+  #   win_lineinfile:
+  #    path: 'C:\tmp\reto1\reto1_content'
+  #    regexp: '.*'
+  #    line: 'ANSIBLE CON WINDOWS'
+  #    backrefs: yes
+  #    validate: 'cat {{ path }} | Select-String -Pattern "{{ regexp }}"'
+  #   vars:
+  #    path: 'C:\tmp\reto1\reto1_content'
+
+    
+
+  
+
+
+

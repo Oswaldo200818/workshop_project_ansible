@@ -1,0 +1,18 @@
+- name: Uninstall Specific versions of packages using Chocolatey
+  hosts: all
+  gather_facts: false
+  
+  vars:
+    choco_packages:
+      - name: nodejs
+        version: 13.0.0
+      - name: python
+        version: 3.6.0
+  
+  tasks:
+    - name: Uninstall Chocolatey packages
+      win_chocolatey:
+        name: "{{ item.name }}"
+        state: absent
+        version: "{{ item.version }}"
+      loop: "{{ choco_packages }}"
